@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>TakaEarn - Telegram Mini App</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Hind+Siliguri:wght@300;400;500;600;700&family=Baloo+Da+2:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0e1a;
+    --surface: #111827;
+    --card: #1a2235;
+    --card2: #1e2a40;
+    --accent: #f59e0b;
+    --accent2: #10b981;
+    --accent3: #3b82f6;
+    --danger: #ef4444;
+    --text: #f1f5f9;
+    --muted: #64748b;
+    --border: rgba(255,255,255,0.07);
+    --gold: #fbbf24;
+    --silver: #94a3b8;
+    --bronze: #cd7c2f;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'Hind Siliguri', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+  }
+
+  /* Background mesh */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background:
+      radial-gradient(ellipse at 20% 20%, rgba(245,158,11,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 80%, rgba(16,185,129,0.06) 0%, transparent 50%),
+      radial-gradient(ellipse at 50% 50%, rgba(59,130,246,0.04) 0%, transparent 60%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app { position: relative; z-index: 1; }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #1a2235 0%, #111827 100%);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    backdrop-filter: blur(20px);
+  }
+
+  .header-left { display: flex; align-items: center; gap: 10px; }
+
+  .logo {
+    width: 36px; height: 36px;
+    background: linear-gradient(135deg, var(--accent), #d97706);
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px;
+    box-shadow: 0 4px 12px rgba(245,158,11,0.3);
+  }
+
+  .app-name {
+    font-family: 'Baloo Da 2', cursive;
+    font-size: 20px;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--accent), #10b981);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .user-badge {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 6px 12px;
+  }
+
+  .user-avatar {
+    width: 28px; height: 28px;
+    background: linear-gradient(135deg, var(--accent3), #6366f1);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px; font-weight: 700;
+  }
+
+  .user-name { font-size: 13px; font-weight: 500; }
+
+  /* Balance Card */
+  .balance-section { padding: 20px; }
+
+  .balance-card {
+    background: linear-gradient(135deg, #1a2a1a 0%, #1a2235 50%, #1a1a2e 100%);
+    border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 20px;
+    padding: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .balance-card::before {
+    content: '৳';
+    position: absolute;
+    right: -10px; top: -20px;
+    font-size: 120px;
+    font-weight: 800;
+    opacity: 0.04;
+    color: var(--accent2);
+    font-family: 'Baloo Da 2', cursive;
+  }
+
+  .balance-label {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .balance-amount {
+    font-family: 'Baloo Da 2', cursive;
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--accent2);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .balance-pending {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .balance-pending span { color: var(--accent); }
+
+  .balance-actions { display: flex; gap: 10px; }
+
+  .btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center; gap: 6px;
+  }
+
+  .btn:active { transform: scale(0.96); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent2), #059669);
+    color: white;
+    box-shadow: 0 4px 15px rgba(16,185,129,0.3);
+  }
+
+  .btn-secondary {
+    background: var(--card2);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* Stats Row */
+  .stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding: 0 20px 20px;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 12px;
+    text-align: center;
+  }
+
+  .stat-icon { font-size: 22px; margin-bottom: 4px; }
+  .stat-value { font-family: 'Baloo Da 2', cursive; font-size: 18px; font-weight: 700; }
+  .stat-label { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+  /* Nav */
+  .nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    z-index: 100;
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  .nav-item {
+    flex: 1;
+    padding: 12px 4px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none; background: none; color: var(--muted);
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 11px;
+  }
+
+  .nav-item.active { color: var(--accent); }
+  .nav-icon { font-size: 22px; }
+
+  /* Pages */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* Section Title */
+  .section-title {
+    padding: 0 20px 12px;
+    font-family: 'Baloo Da 2', cursive;
+    font-size: 18px;
+    font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Tasks */
+  .tasks-list { padding: 0 20px; display: flex; flex-direction: column; gap: 10px; }
+
+  .task-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+    display: flex; align-items: center; gap: 14px;
+    transition: all 0.2s;
+  }
+
+  .task-card.completed { opacity: 0.6; }
+
+  .task-icon {
+    width: 44px; height: 44px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px;
+    flex-shrink: 0;
+  }
+
+  .task-info { flex: 1; }
+  .task-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
+  .task-desc { font-size: 12px; color: var(--muted); }
+
+  .task-reward {
+    display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+  }
+
+  .reward-badge {
+    background: rgba(16,185,129,0.15);
+    color: var(--accent2);
+    border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 8px;
+    padding: 3px 8px;
+    font-size: 12px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .task-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    border: none;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .task-btn.do { background: var(--accent3); color: white; }
+  .task-btn.done { background: var(--card2); color: var(--muted); }
+  .task-btn:active { transform: scale(0.95); }
+
+  /* Referral */
+  .referral-card {
+    margin: 0 20px 16px;
+    background: linear-gradient(135deg, #1e1a35, #1a2235);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 20px;
+    padding: 22px;
+    text-align: center;
+  }
+
+  .referral-title {
+    font-family: 'Baloo Da 2', cursive;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .referral-desc { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+
+  .referral-per {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(245,158,11,0.1);
+    border: 1px solid rgba(245,158,11,0.2);
+    border-radius: 10px;
+    padding: 8px 16px;
+    margin-bottom: 16px;
+    font-size: 14px; font-weight: 600;
+    color: var(--accent);
+  }
+
+  .referral-link-box {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .ref-link { font-size: 12px; color: var(--muted); word-break: break-all; text-align: left; }
+
+  .copy-btn {
+    background: var(--accent3);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 14px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .share-btn {
+    width: 100%;
+    padding: 13px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 15px; font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+  }
+
+  /* Friends List */
+  .friends-list { padding: 0 20px; display: flex; flex-direction: column; gap: 8px; }
+
+  .friend-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .friend-avatar {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px;
+    flex-shrink: 0;
+  }
+
+  .friend-info { flex: 1; }
+  .friend-name { font-size: 14px; font-weight: 600; }
+  .friend-date { font-size: 11px; color: var(--muted); }
+  .friend-earn { font-size: 14px; font-weight: 700; color: var(--accent2); }
+
+  /* Leaderboard */
+  .leaderboard-list { padding: 0 20px; display: flex; flex-direction: column; gap: 8px; }
+
+  .lb-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 16px;
+    display: flex; align-items: center; gap: 12px;
+    transition: all 0.2s;
+  }
+
+  .lb-card.top1 { border-color: rgba(251,191,36,0.4); background: linear-gradient(135deg, #1a1a0a, #1a2235); }
+  .lb-card.top2 { border-color: rgba(148,163,184,0.3); }
+  .lb-card.top3 { border-color: rgba(205,124,47,0.3); }
+  .lb-card.me { border-color: rgba(59,130,246,0.4); background: linear-gradient(135deg, #0a1020, #1a2235); }
+
+  .lb-rank {
+    font-family: 'Baloo Da 2', cursive;
+    font-size: 18px;
+    font-weight: 800;
+    width: 30px;
+    text-align: center;
+    flex-shrink: 0;
+  }
+
+  .lb-avatar {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .lb-info { flex: 1; }
+  .lb-name { font-size: 14px; font-weight: 600; }
+  .lb-refs { font-size: 12px; color: var(--muted); }
+  .lb-amount { font-family: 'Baloo Da 2', cursive; font-size: 16px; font-weight: 700; color: var(--accent2); }
+
+  /* Withdraw Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(4px);
+    z-index: 200;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--surface);
+    border-radius: 24px 24px 0 0;
+    border-top: 1px solid var(--border);
+    padding: 24px 20px 40px;
+    width: 100%;
+    animation: slideUp 0.3s ease;
+  }
+
+  @keyframes slideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+  }
+
+  .modal-handle {
+    width: 40px; height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: 'Baloo Da 2', cursive;
+    font-size: 20px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+
+  .input-group { margin-bottom: 14px; }
+
+  .input-label { font-size: 13px; font-weight: 500; color: var(--muted); margin-bottom: 6px; display: block; }
+
+  .input-field {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    color: var(--text);
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+
+  .input-field:focus { border-color: var(--accent2); }
+
+  .method-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-bottom: 14px; }
+
+  .method-btn {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    font-size: 12px; font-weight: 500;
+    color: var(--text);
+    font-family: 'Hind Siliguri', sans-serif;
+    transition: all 0.2s;
+  }
+
+  .method-btn.selected {
+    border-color: var(--accent2);
+    background: rgba(16,185,129,0.1);
+    color: var(--accent2);
+  }
+
+  .method-icon { font-size: 20px; margin-bottom: 4px; }
+
+  .withdraw-btn {
+    width: 100%;
+    padding: 15px;
+    background: linear-gradient(135deg, var(--accent2), #059669);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 16px; font-weight: 700;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(16,185,129,0.3);
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: 70px; left: 50%; transform: translateX(-50%);
+    background: var(--card2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 10px 20px;
+    font-size: 13px; font-weight: 500;
+    z-index: 300;
+    opacity: 0;
+    transition: opacity 0.3s;
+    white-space: nowrap;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .toast.show { opacity: 1; }
+
+  /* Animations */
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  .pulse { animation: pulse 2s infinite; }
+
+  .page-header {
+    padding: 20px 20px 16px;
+    font-family: 'Baloo Da 2', cursive;
+    font-size: 22px; font-weight: 800;
+  }
+
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+  .empty-text { font-size: 14px; }
+
+  /* History */
+  .history-list { padding: 0 20px; display: flex; flex-direction: column; gap: 8px; }
+
+  .history-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 13px 16px;
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .history-icon {
+    width: 38px; height: 38px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 18px; flex-shrink: 0;
+  }
+
+  .history-info { flex: 1; }
+  .history-title { font-size: 13px; font-weight: 600; }
+  .history-date { font-size: 11px; color: var(--muted); }
+  .history-amount { font-size: 15px; font-weight: 700; }
+  .history-amount.plus { color: var(--accent2); }
+  .history-amount.minus { color: var(--danger); }
+
+  .tab-row {
+    display: flex;
+    gap: 8px;
+    padding: 0 20px 16px;
+  }
+
+  .tab {
+    padding: 7px 16px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--card);
+    color: var(--muted);
+    font-family: 'Hind Siliguri', sans-serif;
+    font-size: 13px; font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .tab.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 700; }
+
+  .min-withdraw {
+    text-align: center;
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 10px;
+  }
+  .min-withdraw span { color: var(--accent); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo">💰</div>
+      <div class="app-name">TakaEarn</div>
+    </div>
+    <div class="user-badge">
+      <div class="user-avatar">R</div>
+      <div class="user-name">Rahim</div>
+    </div>
+  </div>
+
+  <!-- HOME PAGE -->
+  <div class="page active" id="page-home">
+    <div class="balance-section">
+      <div class="balance-card">
+        <div class="balance-label">মোট ব্যালেন্স</div>
+        <div class="balance-amount" id="balance-display">৳ 245.50</div>
+        <div class="balance-pending">পেন্ডিং: <span id="pending-display">৳ 30.00</span></div>
+        <div class="balance-actions">
+          <button class="btn btn-primary" onclick="openWithdraw()">💸 উইথড্র করুন</button>
+          <button class="btn btn-secondary" onclick="goTo('history')">📋 হিস্ট্রি</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-value" style="color: var(--accent3);" id="stat-refs">12</div>
+        <div class="stat-label">রেফারেল</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">✅</div>
+        <div class="stat-value" style="color: var(--accent2);" id="stat-tasks">5</div>
+        <div class="stat-label">টাস্ক সম্পন্ন</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-value" style="color: var(--gold);" id="stat-rank">#8</div>
+        <div class="stat-label">র‍্যাংকিং</div>
+      </div>
+    </div>
+
+    <div class="section-title">⚡ আজকের টাস্ক</div>
+    <div class="tasks-list">
+      <div class="task-card" id="task-1">
+        <div class="task-icon" style="background: rgba(59,130,246,0.15);">📢</div>
+        <div class="task-info">
+          <div class="task-name">Telegram চ্যানেলে জয়েন করুন</div>
+          <div class="task-desc">@TakaEarnOfficial জয়েন করুন</div>
+        </div>
+        <div class="task-reward">
+          <div class="reward-badge">+৳20</div>
+          <button class="task-btn do" onclick="completeTask(1, 20)">করুন</button>
+        </div>
+      </div>
+
+      <div class="task-card" id="task-2">
+        <div class="task-icon" style="background: rgba(239,68,68,0.15);">📺</div>
+        <div class="task-info">
+          <div class="task-name">YouTube ভিডিও দেখুন</div>
+          <div class="task-desc">৩ মিনিট ভিডিও দেখুন</div>
+        </div>
+        <div class="task-reward">
+          <div class="reward-badge">+৳15</div>
+          <button class="task-btn do" onclick="completeTask(2, 15)">করুন</button>
+        </div>
+      </div>
+
+      <div class="task-card" id="task-3">
+        <div class="task-icon" style="background: rgba(16,185,129,0.15);">📱</div>
+        <div class="task-info">
+          <div class="task-name">Facebook পেজ লাইক করুন</div>
+          <div class="task-desc">আমাদের FB পেজ লাইক দিন</div>
+        </div>
+        <div class="task-reward">
+          <div class="reward-badge">+৳10</div>
+          <button class="task-btn do" onclick="completeTask(3, 10)">করুন</button>
+        </div>
+      </div>
+
+      <div class="task-card" id="task-4">
+        <div class="task-icon" style="background: rgba(245,158,11,0.15);">⭐</div>
+        <div class="task-info">
+          <div class="task-name">অ্যাপ রেট করুন</div>
+          <div class="task-desc">৫ স্টার রেটিং দিন</div>
+        </div>
+        <div class="task-reward">
+          <div class="reward-badge">+৳25</div>
+          <button class="task-btn do" onclick="completeTask(4, 25)">করুন</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TASKS PAGE -->
+  <div class="page" id="page-tasks">
+    <div class="page-header">📋 সব টাস্ক</div>
+    <div class="tab-row">
+      <button class="tab active" onclick="filterTasks('all', this)">সব</button>
+      <button class="tab" onclick="filterTasks('daily', this)">ডেইলি</button>
+      <button class="tab" onclick="filterTasks('special', this)">স্পেশাল</button>
+    </div>
+    <div class="tasks-list">
+      <div class="task-card">
+        <div class="task-icon" style="background: rgba(139,92,246,0.15);">🎮</div>
+        <div class="task-info">
+          <div class="task-name">গেম খেলুন ৫ মিনিট</div>
+          <div class="task-desc">স্পেশাল টাস্ক • প্রতিদিন</div>
+        </div>
+        <div class="task-reward">
+          <div class="reward-badge">+৳30</div>
+          <button class="task-btn do" onclick="showToast('টাস্ক শুরু হচ্ছে...')">করুন</button>
+        </div>
+      </div>
+      <div class="task-card">
+        <div class="task-icon" style="background: rgba(245,158,11,0.15);">📊</div>
+        <div class="task-info">
+          <div class="task-name">সার্ভে পূরণ করুন</div>
+          <div class="task-desc">স্পেশাল টাস্ক • একবার</div>
+        </div>
+        <div class="task-reward">
+          <div class="reward-badge">+৳50</div>
+          <button class="task-btn do" onclick="showToast('সার্ভে লোড হচ্ছে...')">করুন</button>
+        </div>
+      </div>
+      <div class="task-card">
+        <div class="task-icon" style="background: rgba(16,185,129,0.15);">🛍️</div>
+        <div class="task-info">
+          <div class="task-name">অ্যাপ ডাউনলোড করুন</div>
+          <div class="task-desc">পার্টনার অ্যাপ • একবার</div>
+        </div>
+        <div class="task-reward">
+          <div class="reward-badge">+৳40</div>
+          <button class="task-btn do" onclick="showToast('অ্যাপ লিংক কপি হয়েছে!')">করুন</button>
+        </div>
+      </div>
+      <div class="task-card completed">
+        <div class="task-icon" style="background: rgba(100,116,139,0.15);">✅</div>
+        <div class="task-info">
+          <div class="task-name">প্রোফাইল সম্পূর্ণ করুন</div>
+          <div class="task-desc">একবার • সম্পন্ন</div>
+        </div>
+        <div class="task-reward">
+          <div class="reward-badge">+৳20</div>
+          <button class="task-btn done" disabled>হয়েছে ✓</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFERRAL PAGE -->
+  <div class="page" id="page-refer">
+    <div class="page-header">👥 রেফারেল</div>
+    <div class="referral-card">
+      <div class="referral-title">বন্ধুকে আমন্ত্রণ জানান</div>
+      <div class="referral-desc">প্রতিটি রেফারেলে আপনি পাবেন</div>
+      <div class="referral-per">🎁 প্রতি রেফারেলে ৳50 বোনাস</div>
+      <div class="referral-link-box">
+        <div class="ref-link">https://t.me/TakaEarnBot?start=REF_RAHIM123</div>
+        <button class="copy-btn" onclick="copyRef()">কপি</button>
+      </div>
+      <button class="share-btn" onclick="shareRef()">
+        📤 শেয়ার করুন Telegram-এ
+      </button>
+    </div>
+
+    <div class="section-title">👥 আমার রেফারেলরা</div>
+    <div class="friends-list">
+      <div class="friend-card">
+        <div class="friend-avatar" style="background: linear-gradient(135deg, #3b82f6, #6366f1);">K</div>
+        <div class="friend-info">
+          <div class="friend-name">Karim Ahmed</div>
+          <div class="friend-date">২ দিন আগে যোগ দিয়েছে</div>
+        </div>
+        <div class="friend-earn">+৳50</div>
+      </div>
+      <div class="friend-card">
+        <div class="friend-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">S</div>
+        <div class="friend-info">
+          <div class="friend-name">Sadia Islam</div>
+          <div class="friend-date">৫ দিন আগে যোগ দিয়েছে</div>
+        </div>
+        <div class="friend-earn">+৳50</div>
+      </div>
+      <div class="friend-card">
+        <div class="friend-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">M</div>
+        <div class="friend-info">
+          <div class="friend-name">Masud Rana</div>
+          <div class="friend-date">১ সপ্তাহ আগে যোগ দিয়েছে</div>
+        </div>
+        <div class="friend-earn">+৳50</div>
+      </div>
+      <div class="friend-card">
+        <div class="friend-avatar" style="background: linear-gradient(135deg, #ef4444, #dc2626);">N</div>
+        <div class="friend-info">
+          <div class="friend-name">Nasrin Begum</div>
+          <div class="friend-date">২ সপ্তাহ আগে যোগ দিয়েছে</div>
+        </div>
+        <div class="friend-earn">+৳50</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- LEADERBOARD PAGE -->
+  <div class="page" id="page-leaderboard">
+    <div class="page-header">🏆 লিডারবোর্ড</div>
+    <div class="leaderboard-list">
+      <div class="lb-card top1">
+        <div class="lb-rank" style="color: var(--gold);">🥇</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg, #fbbf24, #d97706);">A</div>
+        <div class="lb-info">
+          <div class="lb-name">Akash Hossain</div>
+          <div class="lb-refs">45 রেফারেল</div>
+        </div>
+        <div class="lb-amount">৳2,250</div>
+      </div>
+      <div class="lb-card top2">
+        <div class="lb-rank" style="color: var(--silver);">🥈</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg, #94a3b8, #64748b);">F</div>
+        <div class="lb-info">
+          <div class="lb-name">Fatema Khatun</div>
+          <div class="lb-refs">38 রেফারেল</div>
+        </div>
+        <div class="lb-amount">৳1,900</div>
+      </div>
+      <div class="lb-card top3">
+        <div class="lb-rank" style="color: var(--bronze);">🥉</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg, #cd7c2f, #92400e);">J</div>
+        <div class="lb-info">
+          <div class="lb-name">Jamal Uddin</div>
+          <div class="lb-refs">32 রেফারেল</div>
+        </div>
+        <div class="lb-amount">৳1,600</div>
+      </div>
+      <div class="lb-card">
+        <div class="lb-rank" style="color: var(--muted);">4</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">T</div>
+        <div class="lb-info">
+          <div class="lb-name">Taslima Akter</div>
+          <div class="lb-refs">28 রেফারেল</div>
+        </div>
+        <div class="lb-amount">৳1,400</div>
+      </div>
+      <div class="lb-card">
+        <div class="lb-rank" style="color: var(--muted);">5</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">B</div>
+        <div class="lb-info">
+          <div class="lb-name">Belal Hossain</div>
+          <div class="lb-refs">22 রেফারেল</div>
+        </div>
+        <div class="lb-amount">৳1,100</div>
+      </div>
+      <div style="height: 1px; background: var(--border); margin: 4px 0;"></div>
+      <div class="lb-card me">
+        <div class="lb-rank" style="color: var(--accent3);">8</div>
+        <div class="lb-avatar" style="background: linear-gradient(135deg, #10b981, #059669);">R</div>
+        <div class="lb-info">
+          <div class="lb-name">Rahim (আপনি) 📍</div>
+          <div class="lb-refs">12 রেফারেল</div>
+        </div>
+        <div class="lb-amount">৳245</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HISTORY PAGE -->
+  <div class="page" id="page-history">
+    <div class="page-header">📋 ট্রানজেকশন হিস্ট্রি</div>
+    <div class="history-list">
+      <div class="history-item">
+        <div class="history-icon" style="background: rgba(16,185,129,0.1);">👥</div>
+        <div class="history-info">
+          <div class="history-title">রেফারেল বোনাস — Karim</div>
+          <div class="history-date">আজ, ২:৩০ PM</div>
+        </div>
+        <div class="history-amount plus">+৳50</div>
+      </div>
+      <div class="history-item">
+        <div class="history-icon" style="background: rgba(59,130,246,0.1);">✅</div>
+        <div class="history-info">
+          <div class="history-title">টাস্ক বোনাস — YouTube ভিডিও</div>
+          <div class="history-date">আজ, ১:১৫ PM</div>
+        </div>
+        <div class="history-amount plus">+৳15</div>
+      </div>
+      <div class="history-item">
+        <div class="history-icon" style="background: rgba(239,68,68,0.1);">💸</div>
+        <div class="history-info">
+          <div class="history-title">উইথড্র — bKash</div>
+          <div class="history-date">গতকাল, ৫:০০ PM</div>
+        </div>
+        <div class="history-amount minus">-৳100</div>
+      </div>
+      <div class="history-item">
+        <div class="history-icon" style="background: rgba(16,185,129,0.1);">👥</div>
+        <div class="history-info">
+          <div class="history-title">রেফারেল বোনাস — Sadia</div>
+          <div class="history-date">২ দিন আগে</div>
+        </div>
+        <div class="history-amount plus">+৳50</div>
+      </div>
+      <div class="history-item">
+        <div class="history-icon" style="background: rgba(245,158,11,0.1);">⭐</div>
+        <div class="history-info">
+          <div class="history-title">টাস্ক বোনাস — অ্যাপ রেট</div>
+          <div class="history-date">৩ দিন আগে</div>
+        </div>
+        <div class="history-amount plus">+৳25</div>
+      </div>
+      <div class="history-item">
+        <div class="history-icon" style="background: rgba(239,68,68,0.1);">💸</div>
+        <div class="history-info">
+          <div class="history-title">উইথড্র — Nagad</div>
+          <div class="history-date">১ সপ্তাহ আগে</div>
+        </div>
+        <div class="history-amount minus">-৳200</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <nav class="nav">
+    <button class="nav-item active" onclick="goTo('home')" id="nav-home">
+      <span class="nav-icon">🏠</span>হোম
+    </button>
+    <button class="nav-item" onclick="goTo('tasks')" id="nav-tasks">
+      <span class="nav-icon">📋</span>টাস্ক
+    </button>
+    <button class="nav-item" onclick="goTo('refer')" id="nav-refer">
+      <span class="nav-icon">👥</span>রেফার
+    </button>
+    <button class="nav-item" onclick="goTo('leaderboard')" id="nav-leaderboard">
+      <span class="nav-icon">🏆</span>র‍্যাংকিং
+    </button>
+  </nav>
+
+</div>
+
+<!-- Withdraw Modal -->
+<div class="modal-overlay" id="withdraw-modal" onclick="closeWithdrawOnBg(event)">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">💸 উইথড্র করুন</div>
+    <div class="modal-sub">আপনার ব্যালেন্স: <strong style="color: var(--accent2);">৳245.50</strong></div>
+
+    <div class="input-group">
+      <label class="input-label">পেমেন্ট মেথড</label>
+      <div class="method-grid">
+        <div class="method-btn selected" onclick="selectMethod(this)">
+          <div class="method-icon">📱</div>bKash
+        </div>
+        <div class="method-btn" onclick="selectMethod(this)">
+          <div class="method-icon">💚</div>Nagad
+        </div>
+        <div class="method-btn" onclick="selectMethod(this)">
+          <div class="method-icon">🔵</div>Rocket
+        </div>
+      </div>
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">মোবাইল নম্বর</label>
+      <input type="tel" class="input-field" placeholder="01XXXXXXXXX" id="phone-input">
+    </div>
+
+    <div class="input-group">
+      <label class="input-label">পরিমাণ (টাকা)</label>
+      <input type="number" class="input-field" placeholder="সর্বনিম্ন ৳100" id="amount-input" min="100" max="245">
+    </div>
+
+    <button class="withdraw-btn" onclick="submitWithdraw()">উইথড্র রিকোয়েস্ট পাঠান</button>
+    <div class="min-withdraw">সর্বনিম্ন উইথড্র: <span>৳100</span> • প্রসেসিং: <span>২৪ ঘণ্টা</span></div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // State
+  let balance = 245.50;
+  let pending = 30.00;
+  let completedTasks = new Set();
+  let refs = 12;
+  let tasks = 5;
+
+  // Navigation
+  function goTo(page) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    const nav = document.getElementById('nav-' + page);
+    if (nav) nav.classList.add('active');
+    window.scrollTo(0, 0);
+  }
+
+  // Complete Task
+  function completeTask(id, amount) {
+    if (completedTasks.has(id)) return;
+    completedTasks.add(id);
+    balance += amount;
+    pending += amount;
+    tasks++;
+
+    document.getElementById('balance-display').textContent = '৳ ' + balance.toFixed(2);
+    document.getElementById('pending-display').textContent = '৳ ' + pending.toFixed(2);
+    document.getElementById('stat-tasks').textContent = tasks;
+
+    const card = document.getElementById('task-' + id);
+    const btn = card.querySelector('.task-btn');
+    btn.textContent = 'হয়েছে ✓';
+    btn.className = 'task-btn done';
+    btn.disabled = true;
+    card.classList.add('completed');
+
+    showToast('🎉 +৳' + amount + ' আপনার অ্যাকাউন্টে যোগ হয়েছে!');
+  }
+
+  // Copy Referral
+  function copyRef() {
+    const link = 'https://t.me/TakaEarnBot?start=REF_RAHIM123';
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(link);
+    }
+    showToast('✅ রেফারেল লিংক কপি হয়েছে!');
+  }
+
+  // Share Referral
+  function shareRef() {
+    if (window.Telegram && window.Telegram.WebApp) {
+      window.Telegram.WebApp.openTelegramLink('https://t.me/share/url?url=https://t.me/TakaEarnBot?start=REF_RAHIM123&text=TakaEarn-এ যোগ দাও আর ইনকাম শুরু করো!');
+    } else {
+      showToast('📤 শেয়ার লিংক কপি হয়েছে!');
+    }
+  }
+
+  // Withdraw
+  function openWithdraw() {
+    document.getElementById('withdraw-modal').classList.add('open');
+  }
+
+  function closeWithdrawOnBg(e) {
+    if (e.target === document.getElementById('withdraw-modal')) {
+      document.getElementById('withdraw-modal').classList.remove('open');
+    }
+  }
+
+  function selectMethod(el) {
+    document.querySelectorAll('.method-btn').forEach(b => b.classList.remove('selected'));
+    el.classList.add('selected');
+  }
+
+  function submitWithdraw() {
+    const phone = document.getElementById('phone-input').value;
+    const amount = parseFloat(document.getElementById('amount-input').value);
+
+    if (!phone || phone.length < 11) {
+      showToast('⚠️ সঠিক মোবাইল নম্বর দিন');
+      return;
+    }
+    if (!amount || amount < 100) {
+      showToast('⚠️ সর্বনিম্ন ৳100 উইথড্র করুন');
+      return;
+    }
+    if (amount > balance) {
+      showToast('⚠️ পর্যাপ্ত ব্যালেন্স নেই');
+      return;
+    }
+
+    balance -= amount;
+    document.getElementById('balance-display').textContent = '৳ ' + balance.toFixed(2);
+    document.getElementById('withdraw-modal').classList.remove('open');
+    document.getElementById('phone-input').value = '';
+    document.getElementById('amount-input').value = '';
+    showToast('✅ উইথড্র রিকোয়েস্ট পাঠানো হয়েছে! ২৪ ঘণ্টার মধ্যে পাবেন');
+  }
+
+  // Filter Tasks
+  function filterTasks(type, el) {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+  }
+
+  // Toast
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  // Init Telegram WebApp
+  if (window.Telegram && window.Telegram.WebApp) {
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+    const user = window.Telegram.WebApp.initDataUnsafe?.user;
+    if (user) {
+      document.querySelector('.user-name').textContent = user.first_name;
+      document.querySelector('.user-avatar').textContent = user.first_name[0];
+    }
+  }
+</script>
+</body>
+</html>
